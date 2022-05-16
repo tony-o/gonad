@@ -28,7 +28,7 @@ var OrderResultStrings = map[OrderResult]string{
 }
 
 type Inventory struct {
-	id, onHand, onOrder int
+	onHand, onOrder int
 }
 
 type InventoryQuantity either.Either[*Inventory, error]
