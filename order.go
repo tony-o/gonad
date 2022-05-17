@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"deathbykeystroke.com/either/either"
 	"deathbykeystroke.com/either/inventory"
 )
 
@@ -18,6 +20,8 @@ type test struct {
 	id, qty int
 }
 
+var passFail = map[bool]string{false: "FAIL", true: "PASS"}
+
 func main() {
 	tests := []test{
 		{id: 10, qty: 101},
@@ -27,7 +31,19 @@ func main() {
 		{id: 30, qty: 1},
 		{id: 40, qty: 5},
 	}
-	for _, test := range tests {
-		fmt.Printf("ordering %d, qty: %d => %+v\n", test.id, test.qty, Order(test.id, test.qty).String())
+	expects := []inventory.OrderResult{inventory.Ordered, inventory.Fulfilled, inventory.Fulfilled, inventory.UnableToProcure, inventory.Fulfilled, inventory.UnableToProcure}
+	pass := true
+	for i, test := range tests {
+		result := Order(test.id, test.qty)
+		if result.Which() == either.RIGHT || result.Left() != expects[i] {
+			pass = false
+		}
+		fmt.Printf("[%s] ordering %d, qty: %d => %+v\n", passFail[result.Which() == either.RIGHT || expects[i] == result.Left()], test.id, test.qty, result.String())
 	}
+	if !pass {
+		fmt.Fprintf(os.Stderr, "\nFAIL\n")
+		os.Exit(1)
+	}
+	fmt.Fprintf(os.Stderr, "\nPASS\n")
+	os.Exit(0)
 }
